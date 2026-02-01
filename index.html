@@ -1,0 +1,559 @@
+import React, { useState } from 'react';
+import { 
+  Users, Eye, Ear, Monitor, ShieldCheck, BookOpen, MousePointer, 
+  Keyboard, FileText, CheckCircle, AlertTriangle, Search, Layout, 
+  Smartphone, Code, Layers, MessageSquare, Award, Settings, PenTool,
+  ChevronDown, ChevronUp, ExternalLink, Link as LinkIcon, ClipboardCheck,
+  Globe, Terminal, Scan
+} from 'lucide-react';
+
+// Dane dla każdego z 20 dni - ZGODNE Z MATERIAŁAMI "AUDYTOWANIE STRON WWW"
+const trainingDays = [
+  // --- CZĘŚĆ 1: FUNDAMENTY (Dni 1-4) ---
+  {
+    day: 1,
+    title: "Funkcjonowanie i bariery w świecie cyfrowym (Moduł 1)",
+    icon: Users,
+    color: "bg-blue-500",
+    summary: "Wprowadzenie do tematyki niepełnosprawności i modeli jej postrzegania.",
+    details: [
+      "Kim jest użytkownik z niepełnosprawnością? Nowoczesne podejście.",
+      "Definicje prawne i społeczne (Model medyczny vs społeczny).",
+      "Rodzaje niepełnosprawności (wzrok, słuch, ruch, intelekt) i ich wpływ na odbiór strony www.",
+      "Symulacje barier cyfrowych."
+    ],
+    review: "Bariera cyfrowa to błąd w kodzie lub projekcie, a nie cecha użytkownika.",
+    task: "Wejdź na ulubioną stronę i spróbuj nawigować po niej, patrząc na ekran przez 'dziurkę od klucza' (zwiń dłoń w pięść i patrz przez mały otwór). To symulacja widzenia tunelowego.",
+    resources: [
+      { title: "Konwencja ONZ o prawach osób niepełnosprawnych", url: "https://isap.sejm.gov.pl/" },
+      { title: "Symulacje widzenia (WebAIM)", url: "https://webaim.org/simulations/lowvision" }
+    ]
+  },
+  {
+    day: 2,
+    title: "Technologie asystujące w praktyce (Moduł 2)",
+    icon: Ear,
+    color: "bg-blue-600",
+    summary: "Narzędzia, którymi posługują się użytkownicy.",
+    details: [
+      "Czytniki ekranu (NVDA, JAWS, VoiceOver) - jak linearyzują treść.",
+      "Programy powiększające (ZoomText, Lupa systemowa).",
+      "Nawigacja bezwzrokowa i sterowanie głosem.",
+      "Przełączniki (Switche) i Eye-tracking."
+    ],
+    review: "Audytor musi rozumieć, jak technologia asystująca interpretuje kod HTML.",
+    task: "Uruchom darmowy czytnik NVDA (lub Narratora w Windows). Spróbuj przeczytać nagłówki na stronie onet.pl używając skrótu (H lub CapsLock+Left/Right).",
+    resources: [
+      { title: "NVDA - Pobieranie i instrukcja", url: "https://www.nvaccess.org/" },
+      { title: "Skróty klawiszowe czytników (LepszyWeb)", url: "https://lepszyweb.pl/" }
+    ]
+  },
+  {
+    day: 3,
+    title: "Ustawa i standard WCAG 2.1 (Moduł 3)",
+    icon: ShieldCheck,
+    color: "bg-indigo-600",
+    summary: "Ramy prawne audytu w Polsce.",
+    details: [
+      "Ustawa o dostępności cyfrowej z 2019 r. - wymagania dla podmiotów publicznych.",
+      "Dyrektywa UE 2016/2102.",
+      "Struktura WCAG: 4 Zasady (POUR), Wytyczne, Kryteria Sukcesu.",
+      "Poziomy zgodności: A, AA (wymagany), AAA."
+    ],
+    review: "Polskie prawo wymaga zgodności z WCAG 2.1 na poziomie AA. Brak tej zgodności grozi karami.",
+    task: "Znajdź 'Deklarację Dostępności' na stronie swojego urzędu miasta. Sprawdź, czy widnieje tam data ostatniego przeglądu.",
+    resources: [
+      { title: "Ustawa o dostępności cyfrowej (Dz.U. 2019 poz. 848)", url: "https://isap.sejm.gov.pl/" },
+      { title: "Tłumaczenie WCAG 2.1", url: "https://www.w3.org/Translations/WCAG21-pl/" }
+    ]
+  },
+  {
+    day: 4,
+    title: "Przegląd zasad WCAG 2.1 (Moduł 4)",
+    icon: Globe,
+    color: "bg-indigo-700",
+    summary: "Kluczowe reguły: Postrzegalność, Funkcjonalność, Zrozumiałość, Solidność.",
+    details: [
+      "Zasada 1: Postrzegalność (Alt teksty, Kontrast, RWD).",
+      "Zasada 2: Funkcjonalność (Klawiatura, Czas, Ataki padaczki).",
+      "Zasada 3: Zrozumiałość (Język, Przewidywalność).",
+      "Zasada 4: Solidność (Poprawność kodu, ARIA)."
+    ],
+    review: "WCAG to nie tylko lista kontrolna, to filozofia tworzenia treści dostępnych dla wszystkich zmysłów.",
+    task: "Wybierz jedno kryterium (np. 1.4.3 Kontrast) i znajdź w internecie przykład jego naruszenia (np. jasnoszary tekst na białym tle).",
+    resources: [
+      { title: "WCAG 2.1 at a Glance (W3C)", url: "https://www.w3.org/WAI/standards-guidelines/wcag/glance/" }
+    ]
+  },
+
+  // --- CZĘŚĆ 2: NARZĘDZIA I METODYKA (Dni 5-9) ---
+  {
+    day: 5,
+    title: "Metodyka audytu i dobór próby (Moduł 5)",
+    icon: Search,
+    color: "bg-purple-500",
+    summary: "Jak zaplanować badanie serwisu?",
+    details: [
+      "Metodologia WCAG-EM (Website Accessibility Conformance Evaluation Methodology).",
+      "Definiowanie zakresu audytu.",
+      "Dobór reprezentatywnej próby (strona główna, logowanie, kontakt, procesy).",
+      "Środowisko testowe (przeglądarki, systemy)."
+    ],
+    review: "Nie musisz badać 10 000 podstron. Wystarczy mądra próba reprezentatywna obejmująca kluczowe widoki.",
+    task: "Wypisz 5 kluczowych podstron dla sklepu internetowego, które koniecznie trzeba by zbadać (np. Koszyk, Karta Produktu).",
+    resources: [
+      { title: "WCAG-EM Methodology (W3C)", url: "https://www.w3.org/TR/WCAG-EM/" }
+    ]
+  },
+  {
+    day: 6,
+    title: "Narzędzia automatyczne: WAVE i Lighthouse (Moduł 6)",
+    icon: Settings,
+    color: "bg-purple-600",
+    summary: "Wstępna analiza automatyczna.",
+    details: [
+      "Instalacja i interpretacja wyników WAVE (Errors vs Alerts).",
+      "Lighthouse w Chrome DevTools.",
+      "Axe DevTools.",
+      "Ograniczenia automatów (wykrywają ok. 30% błędów)."
+    ],
+    review: "Czerwona ikona w WAVE to błąd, ale brak ikon nie oznacza, że strona jest dostępna.",
+    task: "Przeskanuj stronę wp.pl wtyczką WAVE. Ile błędów kontrastu wykryto?",
+    resources: [
+      { title: "WAVE Extension", url: "https://wave.webaim.org/extension/" }
+    ]
+  },
+  {
+    day: 7,
+    title: "Narzędzia wspomagające: ANDI i Bookmarklety (Moduł 7)",
+    icon: Layers,
+    color: "bg-purple-700",
+    summary: "Półautomatyczna analiza struktury.",
+    details: [
+      "Bookmarklety JavaScript (HeadingsMap, Landmarks).",
+      "Narzędzie ANDI (Accessible Name & Description Inspector).",
+      "Weryfikacja struktury nagłówków (H1-H6).",
+      "Analiza dostępnych nazw (Accessible Name)."
+    ],
+    review: "ANDI pozwala 'zobaczyć' to, co czytnik ekranu 'słyszy', bez konieczności słuchania syntezy.",
+    task: "Zainstaluj bookmarklet 'HeadingsMap'. Sprawdź, czy na badanej stronie hierarchia nagłówków jest zachowana (czy nie ma przeskoku z H1 na H4).",
+    resources: [
+      { title: "Bookmarklety Paula J. Adama", url: "https://pauljadam.com/bookmarklets/" },
+      { title: "ANDI Tool (SSA.gov)", url: "https://www.ssa.gov/accessibility/andi/" }
+    ]
+  },
+  {
+    day: 8,
+    title: "Inspektor kodu i podstawy HTML (Moduł 8)",
+    icon: Code,
+    color: "bg-gray-700",
+    summary: "Analiza kodu źródłowego dla audytora.",
+    details: [
+      "Używanie 'Zbadaj element' (Inspect Element).",
+      "Znaczniki semantyczne (<nav>, <main>, <button>) vs <div>.",
+      "Atrybuty kluczowe: alt, lang, label, for.",
+      "Drzewo dostępności (Accessibility Tree) w przeglądarce."
+    ],
+    review: "Audytor musi umieć zajrzeć 'pod maskę'. Wygląd przycisku to CSS, jego działanie to HTML/JS.",
+    task: "Kliknij prawym przyciskiem na dowolny przycisk na stronie -> Zbadaj. Sprawdź, czy w kodzie jest to tag <button> czy <div>.",
+    resources: [
+      { title: "Podstawy HTML dla dostępności (MDN)", url: "https://developer.mozilla.org/" }
+    ]
+  },
+  {
+    day: 9,
+    title: "Testowanie manualne: Klawiatura (Moduł 9)",
+    icon: Keyboard,
+    color: "bg-yellow-500",
+    summary: "Podstawa audytu funkcjonalnego.",
+    details: [
+      "Nawigacja: Tab, Shift+Tab, Enter, Spacja, Strzałki.",
+      "Widoczny fokus (Focus Visible).",
+      "Kolejność tabulacji (Focus Order).",
+      "Pułapki na klawiaturę (Keyboard Trap)."
+    ],
+    review: "Jeśli nie możesz obsłużyć elementu samą klawiaturą, jest to błąd krytyczny dyskwalifikujący stronę.",
+    task: "Odłącz myszkę. Spróbuj przejść całą ścieżkę menu głównego na stronie urzędu używając tylko klawiatury.",
+    resources: [
+      { title: "Techniki testowania klawiaturą (WebAIM)", url: "https://webaim.org/techniques/keyboard/" }
+    ]
+  },
+
+  // --- CZĘŚĆ 3: SZCZEGÓŁOWY AUDYT KRYTERIÓW (Dni 10-17) ---
+  {
+    day: 10,
+    title: "Audyt grafik i multimediów (Moduł 10)",
+    icon: Eye,
+    color: "bg-green-500",
+    summary: "Weryfikacja treści nietekstowych.",
+    details: [
+      "Grafiki informacyjne (alt opisowy) vs dekoracyjne (alt pusty).",
+      "Grafiki złożone (wykresy, infografiki).",
+      "Weryfikacja napisów i audiodeskrypcji w wideo.",
+      "Obiekty CAPTCHA."
+    ],
+    review: "Alt tekst powinien przekazywać treść i funkcję obrazka, a nie jego wygląd (chyba że to strona o sztuce).",
+    task: "Znajdź logo na stronie. Sprawdź w kodzie, czy alt tekst brzmi 'Strona Główna' (funkcja) czy 'Logo firmy X' (wygląd).",
+    resources: [
+      { title: "Drzewo decyzyjne Alt Text (W3C)", url: "https://www.w3.org/WAI/tutorials/images/decision-tree/" }
+    ]
+  },
+  {
+    day: 11,
+    title: "Audyt formularzy i interakcji (Moduł 11)",
+    icon: MousePointer,
+    color: "bg-green-600",
+    summary: "Testowanie procesów (formularze, koszyk).",
+    details: [
+      "Etykiety pól (Label vs Placeholder).",
+      "Powiązanie etykiet (atrybut 'for' i 'id').",
+      "Obsługa błędów walidacji i komunikaty.",
+      "Czas na wykonanie zadania (Timeout)."
+    ],
+    review: "Kliknięcie w etykietę tekstową ('Imię') powinno przenieść kursor do pola wpisywania. Jeśli nie - błąd.",
+    task: "Wyślij pusty formularz kontaktowy. Czy komunikaty o błędach są jasne i czy czytnik je odczytuje?",
+    resources: [
+      { title: "Tworzenie dostępnych formularzy (W3C)", url: "https://www.w3.org/WAI/tutorials/forms/" }
+    ]
+  },
+  {
+    day: 12,
+    title: "Wygląd: Kontrast i RWD (Moduł 12)",
+    icon: Monitor,
+    color: "bg-green-700",
+    summary: "Dostępność wizualna.",
+    details: [
+      "Badanie kontrastu treści i elementów interfejsu (CCA).",
+      "Skalowanie tekstu do 200%.",
+      "Responsywność (Reflow) - brak paska przewijania poziomego.",
+      "Odstępy w tekście (Text Spacing)."
+    ],
+    review: "Kontrast badamy nie tylko dla tekstu, ale też dla ikon, ramek formularzy i stanów fokusa.",
+    task: "Powiększ stronę do 200% (Ctrl + +). Czy menu nadal jest funkcjonalne, czy nachodzi na treść?",
+    resources: [
+      { title: "Colour Contrast Analyser (Pobierz)", type: "tool" }
+    ]
+  },
+  {
+    day: 13,
+    title: "Audyt z czytnikiem ekranu - Podstawy (Moduł 13)",
+    icon: Ear,
+    color: "bg-yellow-600",
+    summary: "Weryfikacja semantyki słuchem.",
+    details: [
+      "Podstawowe gesty/skróty (Next Item, Read All).",
+      "Nawigacja po nagłówkach i linkach.",
+      "Weryfikacja kolejności odczytu.",
+      "Wykrywanie treści ukrytych."
+    ],
+    review: "Czytnik nie czyta tego co widzisz, tylko to co jest w drzewie dostępności (DOM).",
+    task: "Zamknij oczy. Spróbuj zlokalizować artykuł na stronie głównej portalu informacyjnego używając tylko słuchu.",
+    resources: [
+      { title: "Testowanie z czytnikiem ekranu (WebAIM)", url: "https://webaim.org/articles/nvda/" }
+    ]
+  },
+  {
+    day: 14,
+    title: "Zaawansowany audyt ARIA (Moduł 14)",
+    icon: Code,
+    color: "bg-orange-600",
+    summary: "Dynamiczne elementy (SPA, Widgety).",
+    details: [
+      "Role ARIA (role='dialog', 'tablist').",
+      "Stany i właściwości (aria-expanded, aria-hidden).",
+      "Komunikaty na żywo (aria-live).",
+      "Modalne okna dialogowe (pułapki fokusa)."
+    ],
+    review: "Zła ARIA jest gorsza niż brak ARIA. Używaj tylko wtedy, gdy natywny HTML nie wystarcza.",
+    task: "Otwórz rozwijane menu (dropdown). Sprawdź w kodzie, czy zmienia się atrybut aria-expanded z 'false' na 'true'.",
+    resources: [
+      { title: "ARIA Authoring Practices Guide (APG)", url: "https://www.w3.org/WAI/ARIA/apg/" }
+    ]
+  },
+  {
+    day: 15,
+    title: "Audyt mobilny i gesty (Moduł 15)",
+    icon: Smartphone,
+    color: "bg-blue-400",
+    summary: "Testowanie na urządzeniach dotykowych.",
+    details: [
+      "Responsywność na smartfonie.",
+      "Gesty dotykowe (proste vs złożone).",
+      "Wielkość celów dotykowych (min. 44x44 px).",
+      "Orientacja ekranu (pion/poziom)."
+    ],
+    review: "Elementy interaktywne na mobile muszą być odpowiednio duże, by trafić w nie palcem.",
+    task: "Otwórz stronę na telefonie. Czy linki w stopce nie są zbyt blisko siebie? Czy łatwo w nie trafić kciukiem?",
+    resources: [
+      { title: "Mobile Accessibility at W3C", url: "https://www.w3.org/WAI/standards-guidelines/mobile/" }
+    ]
+  },
+  {
+    day: 16,
+    title: "Pliki do pobrania i inne formaty (Moduł 16)",
+    icon: FileText,
+    color: "bg-gray-600",
+    summary: "Dostępność załączników na stronie.",
+    details: [
+      "Weryfikacja dostępności PDF (PAC).",
+      "Dokumenty biurowe (DOCX, XLSX) na stronie.",
+      "Deklaracja Dostępności jako dokument.",
+      "Alternatywy dla plików niedostępnych."
+    ],
+    review: "Jeśli na stronie jest PDF, musi on spełniać standard PDF/UA lub WCAG. Jeśli nie spełnia - musi być alternatywa HTML.",
+    task: "Pobierz jeden plik PDF ze strony urzędu. Sprawdź w programie PAC, czy jest oznaczony jako 'Tagged PDF'.",
+    resources: [
+      { title: "PAC - PDF Accessibility Checker", url: "https://pac.pdf-accessibility.org/" }
+    ]
+  },
+  {
+    day: 17,
+    title: "Agregacja wyników (Moduł 17)",
+    icon: Scan,
+    color: "bg-gray-800",
+    summary: "Zbieranie danych z audytu.",
+    details: [
+      "Potwierdzanie błędów (eliminacja False Positives).",
+      "Grupowanie powtarzalnych błędów.",
+      "Ocena wagi błędów (Krytyczny / Ważny / Umiarkowany).",
+      "Przygotowanie 'wsadu' do raportu."
+    ],
+    review: "Jeden błąd w nagłówku strony (np. w menu) powielony na 100 podstronach to nadal jeden błąd systemowy.",
+    task: "Przejrzyj swoje notatki z audytu. Czy masz zrzuty ekranu dla każdego znalezionego błędu?",
+    resources: [
+      { title: "Szablon notatki audytowej", type: "doc" }
+    ]
+  },
+
+  // --- CZĘŚĆ 4: RAPORTOWANIE (Dni 18-20) ---
+  {
+    day: 18,
+    title: "Tworzenie raportu dostępności (Moduł 18)",
+    icon: PenTool,
+    color: "bg-red-500",
+    summary: "Struktura profesjonalnego raportu.",
+    details: [
+      "Streszczenie dla zarządu (Executive Summary).",
+      "Metodologia badania i zakres.",
+      "Szczegółowy opis błędów (Kryterium, Lokalizacja, Opis).",
+      "Rekomendacje dla programistów."
+    ],
+    review: "Raport to produkt końcowy Twojej pracy. Musi być czytelny, profesjonalny i... dostępny!",
+    task: "Napisz rekomendację naprawczą dla błędu 'Brak etykiety pola wyszukiwania'. Użyj języka HTML.",
+    resources: [
+      { title: "Wzór raportu z audytu (Ministerstwo Cyfryzacji)", type: "doc" }
+    ]
+  },
+  {
+    day: 19,
+    title: "Praca nad raportem w grupach (Moduł 19)",
+    icon: CheckCircle,
+    color: "bg-red-600",
+    summary: "Weryfikacja i konsultacje.",
+    details: [
+      "Peer review - wzajemne sprawdzanie raportów.",
+      "Uspójnianie terminologii.",
+      "Weryfikacja zrozumiałości rekomendacji.",
+      "Finalizacja dokumentu."
+    ],
+    review: "Audytor też człowiek, może się pomylić. Weryfikacja koleżeńska (Peer Review) podnosi jakość audytu.",
+    task: "Zamień się z kimś fragmentem raportu. Czy rozumiesz błąd, który opisał, nie widząc strony?",
+    resources: [
+      { title: "Checklista jakości raportu", type: "doc" }
+    ]
+  },
+  {
+    day: 20,
+    title: "Prezentacja i podsumowanie (Moduł 20)",
+    icon: Award,
+    color: "bg-gray-900",
+    summary: "Obrona prac i zakończenie.",
+    details: [
+      "Prezentacja wyników audytu przed 'Klientem'.",
+      "Dyskusja o najtrudniejszych przypadkach.",
+      "Ewaluacja kursu.",
+      "Ścieżki rozwoju (certyfikacja CPACC, WAS)."
+    ],
+    review: "Dostępność to proces ciągły. Audyt to tylko zdjęcie stanu na dany dzień.",
+    task: "Zaplanuj swój pierwszy komercyjny audyt lub audyt strony swojej organizacji.",
+    resources: [
+      { title: "IAAP Certification", url: "https://www.accessibilityassociation.org/" }
+    ]
+  }
+];
+
+const TimelineItem = ({ data, isLast }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const Icon = data.icon;
+
+  return (
+    <div className="flex group">
+      {/* Left Column: Day Indicator */}
+      <div className="flex flex-col items-center mr-4 md:mr-8 min-w-[60px] md:min-w-[80px]">
+        <div className={`flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-white shadow-lg z-10 ${data.color} text-white font-bold text-lg md:text-xl`}>
+          {data.day}
+        </div>
+        {!isLast && (
+          <div className="w-1 flex-grow bg-gray-200 group-hover:bg-gray-300 transition-colors my-2"></div>
+        )}
+      </div>
+
+      {/* Right Column: Content Card */}
+      <div className="pb-12 flex-grow">
+        <div 
+          className={`bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer ${isOpen ? 'ring-2 ring-blue-100' : ''}`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {/* Header */}
+          <div className="p-5 md:p-6 flex items-start justify-between">
+            <div className="flex items-start gap-4">
+              <div className={`mt-1 p-2 rounded-lg bg-gray-50 text-gray-600 hidden sm:block`}>
+                <Icon size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-1">{data.title}</h3>
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed">{data.summary}</p>
+              </div>
+            </div>
+            <button className="text-gray-400 hover:text-blue-600 transition-colors ml-2">
+              {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+            </button>
+          </div>
+
+          {/* Expanded Content */}
+          {isOpen && (
+            <div className="bg-slate-50 border-t border-gray-100 p-5 md:p-8 animation-expand">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Left Column: Details & Task */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center">
+                      <BookOpen size={16} className="mr-2" />
+                      Wiedza (Szczegóły)
+                    </h4>
+                    <ul className="space-y-2">
+                      {data.details.map((detail, idx) => (
+                        <li key={idx} className="flex items-start text-gray-700 text-sm">
+                          <div className={`mt-1.5 w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${data.color}`}></div>
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {data.task && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="text-blue-800 font-bold text-sm mb-2 flex items-center">
+                        <ClipboardCheck size={18} className="mr-2" />
+                        Zadanie praktyczne
+                      </h4>
+                      <p className="text-blue-900 text-sm leading-relaxed">
+                        {data.task}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column: Review & Resources */}
+                <div className="space-y-6">
+                  
+                  <div className={`p-4 rounded-lg border-l-4 bg-white shadow-sm ${data.color.replace('bg-', 'border-')}`}>
+                    <h4 className="text-sm font-bold text-gray-800 flex items-center mb-2">
+                      <AlertTriangle size={16} className="mr-2 text-orange-500" />
+                      Zapamiętaj (Kluczowe)
+                    </h4>
+                    <p className="text-gray-600 italic text-sm">
+                      "{data.review}"
+                    </p>
+                  </div>
+
+                  {data.resources && (
+                    <div>
+                       <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center">
+                        <LinkIcon size={16} className="mr-2" />
+                        Materiały i Linki
+                      </h4>
+                      <div className="flex flex-col gap-2">
+                        {data.resources.map((res, idx) => (
+                          <a 
+                            key={idx} 
+                            href={res.url || "#"} 
+                            target={res.url ? "_blank" : "_self"}
+                            rel="noopener noreferrer"
+                            className="flex items-center p-2 rounded hover:bg-white hover:shadow-sm transition border border-transparent hover:border-gray-200 group/link"
+                          >
+                            <div className="mr-3 text-gray-400 group-hover/link:text-blue-500">
+                              {res.type === 'doc' ? <FileText size={16}/> : 
+                               res.type === 'tool' ? <Settings size={16}/> : 
+                               <ExternalLink size={16}/>}
+                            </div>
+                            <span className="text-sm text-gray-600 group-hover/link:text-blue-700 font-medium truncate">
+                              {res.title}
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Header = () => (
+  <div className="bg-slate-900 text-white pt-16 pb-24 px-4 text-center relative overflow-hidden">
+    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+       <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-blue-500 blur-3xl"></div>
+       <div className="absolute bottom-10 right-10 w-64 h-64 rounded-full bg-purple-500 blur-3xl"></div>
+    </div>
+    
+    <h1 className="text-3xl md:text-5xl font-extrabold mb-4 relative z-10 tracking-tight">
+      Audytor Stron WWW
+    </h1>
+    <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto relative z-10 font-light">
+      Niezbędnik kursanta: Audytowanie dostępności stron internetowych zgodnie z WCAG 2.1 (HTML, CSS, ARIA).
+    </p>
+
+    <div className="flex justify-center gap-2 mt-8 flex-wrap relative z-10">
+      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs font-medium text-blue-300 border border-slate-700">WCAG 2.1 AA</span>
+      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs font-medium text-green-300 border border-slate-700">Narzędzia Automatyczne</span>
+      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs font-medium text-purple-300 border border-slate-700">Audyt Ekspercki</span>
+    </div>
+  </div>
+);
+
+const App = () => {
+  return (
+    <div className="min-h-screen bg-slate-100 font-sans pb-20">
+      <Header />
+      
+      <main className="max-w-5xl mx-auto px-4 -mt-16 relative z-20">
+        <div className="space-y-0">
+          {trainingDays.map((dayData, index) => (
+            <TimelineItem 
+              key={dayData.day} 
+              data={dayData} 
+              isLast={index === trainingDays.length - 1} 
+            />
+          ))}
+        </div>
+
+        <div className="text-center mt-12 text-slate-400 text-sm">
+          <p>Opracowano na podstawie programu szkolenia "Audytowanie dostępności stron internetowych".</p>
+          <p>© 2024 Szkoła Dostępności Cyfrowej</p>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
